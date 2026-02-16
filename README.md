@@ -1,101 +1,117 @@
 # Spam Email Classification System
 
-A production-grade machine learning system designed to robustly classify emails as "Spam" or "Ham" (legitimate). This project features a modular pipeline architecture for training and inference, integrated with a modern Streamlit user interface for easy interaction.
+A production-ready spam/ham classifier built with Python, scikit-learn, and Streamlit. The app focuses on single-email classification, while the training pipeline supports model comparison and versioned outputs.
 
-## 🚀 Key Features
+## What This Project Does
 
-- **Advanced ML Pipeline**: Modular design separating data ingestion, transformation, and model training.
-- **Multiple Model Support**: evaluation of various algorithms including SVM, Logistic Regression, Decision Trees, and Random Forest.
-- **Interactive Web UI**: Built with Streamlit for real-time single-email analysis and batch processing.
-- **MBOX Support**: Native capability to process and classify entire `mbox` email archives.
-- **Detailed Analytics**: Comprehensive logging and performance metrics (Precision, Recall, F1-Score).
+- Classifies email text as Spam or Ham with confidence scores.
+- Trains multiple ML models and selects the best model based on cross-validation.
+- Stores model artifacts and evaluation reports for each training run.
 
-## 🛠️ Tech Stack
+## How It Works
 
-- **Language**: Python 3.10+
-- **Frontend**: Streamlit
-- **ML Framework**: Scikit-learn
-- **Data Processing**: Pandas, NumPy, BeautifulSoup4
-- **Project Management**: `uv` (recommended) or `pip`
+1. **Preprocessing**: Clean text (HTML removal, normalization, control-char stripping).
+2. **Vectorization**: TF-IDF feature extraction.
+3. **Modeling**: Train and compare models (e.g., SVM, Logistic Regression, Random Forest).
+4. **Selection**: Choose the best model based on F1-score.
+5. **Inference**: Load the best model and classify new emails in the Streamlit app.
 
-## 📂 Project Structure
+## Key Features
+
+- Streamlit UI for instant single-email classification.
+- Modular pipeline for ingestion, transformation, training, and prediction.
+- Detailed metrics and comparison reports saved per training run.
+- Config-driven paths for datasets and model artifacts.
+
+## Project Layout (Short)
 
 ```
-├── app.py                  # Main Streamlit Web Application
-├── requirements.txt        # Project dependencies
-├── main.py                 # (Optional) Alternative entry point
-├── src/
-│   ├── components/         # Core processing modules (Ingestion, Transformation)
-│   ├── pipeline/           # Orchestration pipelines (Training, Prediction)
-│   ├── config/             # Configuration and parameters
-│   └── utils/              # Helper functions, logging, and state management
-├── data/                   # Dataset storage (inputs)
-├── outputs/                # Training artifacts (models, vectorizers)
-└── logs/                   # System runtime logs
+app.py
+src/
+  components/         # ingestion, transformation, training
+  pipeline/           # training & prediction pipelines
+  utils/              # logging, text utilities
+  config/             # project configuration
+data/                 # datasets
+outputs/              # model artifacts + reports per run
+logs/                 # training/prediction logs
 ```
 
-## ⚡ Installation
+## Setup
 
-1. **Clone the Repository**
-   ```bash
-   git clone <repository_url>
-   cd Spam-Email-Detection
-   ```
+```bash
+python -m venv .venv
+```
 
-2. **Set up Environment**
-   It is recommended to use a virtual environment.
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
+```powershell
+.venv\Scripts\Activate.ps1
+```
 
-3. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+pip install -r requirements.txt
+```
 
-## 🖥️ Usage
-
-### 1. Running the Web Application
-Launch the interactive dashboard to classify emails instantly.
+## Run the App
 
 ```bash
 streamlit run app.py
 ```
 
-- **Single Email Tab**: Paste email content to get an immediate Spam/Ham prediction with a confidence score.
-- **Batch Processing Tab**: Upload an `.mbox` file to process multiple emails at once and download the results as a CSV.
+Paste an email and click **Classify Email** to see the prediction and confidence.
 
-### 2. Training the Model
-(Optional) If you wish to retrain the models on new data:
+## Train a New Model
 
-1. Place your dataset in `data/dataset/dataset.csv`.
-2. Run the training pipeline:
-   ```bash
-   python -m src.pipeline.training_pipeline
-   ```
-3. Artifacts (Model & Vectorizer) will be saved in the `outputs/` directory.
-4. **Important**: Update `src/config/config.py` with the new paths to your generated model and vectorizer if they change.
+1. Prepare a CSV dataset with columns:
 
-## ⚙️ Configuration
+```csv
+text,label
+"your email text",spam
+"another email",ham
+```
 
-The system is highly configurable via `src/config/config.py`. You can adjust:
-- Model hyperparameters (Grid Search configuration)
-- Input/Output paths
-- Training parameters (Cross-validation folds, etc.)
+2. Replace the dataset at:
 
-## 📊 Model Performance
+```
+data/dataset/dataset.csv
+```
 
-The pipeline automatically evaluates models using 5-fold cross-validation. Metrics including Accuracy, Precision, Recall, and F1-Score are logged for each experiment. By default, the system selects the best performing model (often SVM or Random Forest) for inference.
+3. Run training:
 
-## 🤝 Contributing
+```bash
+python -m src.pipeline.training_pipeline
+```
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+4. Update model paths in:
 
-## 📝 License
+```
+src/config/config.py
+```
 
-Distributed under the MIT License. See `LICENSE` for more information.
+## Outputs and Logs
+
+- Training artifacts and reports are stored in timestamped folders under:
+
+```
+outputs/
+```
+
+- Logs are written under:
+
+```
+logs/
+```
+
+## Configuration
+
+The key paths are in:
+
+```
+src/config/config.py
+```
+
+Update `model_path` and `feature_path` after training if you want the app to use the latest model.
+
+## Notes
+
+- The app loads a saved model and vectorizer from `outputs/` using the paths in config.
+- If scikit-learn versions differ between training and inference, re-train or install the matching version.

@@ -1,0 +1,108 @@
+Subject: You have won a cash prize!
+Hello,
+
+Congratulations! You have been selected to receive $1,000,000.
+To claim your prize, click the link below and confirm your details:
+http://example.com/claim-now
+
+Act fast—this offer expires in 24 hours.
+
+Best regards,
+Prize Department
+
+
+Subject: Follow-up on your account update
+Hi Alex,
+
+We noticed you started the account update process but did not finish it.
+If you still want to keep your current benefits, please confirm your details
+using the secure link below:
+
+https://example.com/verify-account
+
+If this was not you, you can ignore this message and no changes will be made.
+
+Thanks,
+Customer Support Team
+
+
+
+Subject: Meeting Confirmation - Project Status Review
+Dear Jordan Lee,
+
+This is to confirm our Project Status Review meeting scheduled for
+Wednesday, February 19, 2026 at 10:00 AM (IST) via Microsoft Teams.
+
+Agenda:
+- Progress update by each workstream
+- Risks and mitigation actions
+- Next milestones and ownership
+
+Please reply to confirm your attendance.
+
+Regards,
+Anita Sharma
+Program Management Office
+Acme Solutions Pvt. Ltd.
+
+
+Subject: Invoice adjustment required - Action needed
+Hello,
+
+We processed your latest invoice and noticed a mismatch in the billing address.
+To avoid a delay in payment, please review the attached statement and confirm
+your details using the secure link below:
+
+https://example.com/billing-review
+
+If this was already resolved, no further action is required.
+
+Accounts Team
+
+
+Subject: Security alert - new sign-in detected
+Hi Priya,
+
+We detected a sign-in to your account from a new device. If this was you,
+you can ignore this message. If not, please secure your account immediately
+by confirming your identity here:
+
+https://example.com/secure-check
+
+Thank you,
+Security Operations
+
+
+Subject: HR Policy Update - acknowledgement required
+Dear Team,
+
+We have updated the remote work policy for Q1. Please review the changes and
+acknowledge receipt to remain compliant.
+
+Review and acknowledge: https://example.com/policy-ack
+
+Regards,
+Human Resources
+
+
+Subject: Delivery exception - address clarification
+Hello,
+
+We attempted delivery, but the address provided was incomplete. Please confirm
+the correct address to reschedule delivery.
+
+https://example.com/delivery-update
+
+Thank you,
+Logistics Support
+
+
+Subject: Subscription renewal - payment method expiring
+Hi,
+
+Your payment method on file will expire soon. To avoid interruption to your
+service, please update your billing information.
+
+https://example.com/update-payment
+
+Support Team
