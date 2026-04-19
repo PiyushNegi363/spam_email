@@ -75,3 +75,43 @@ class PredictionPipeline:
             'confidence': confidence,
             'raw_prediction': int(prediction[0])
         }
+
+    def predict_batch(self, email_bodies: list) -> list:
+        """Process multiple emails for high-performance batch classification"""
+        if self.model is None or self.feature_transformer is None:
+            self._load_models()
+
+        if not email_bodies:
+            return []
+
+        # Clean all texts
+        cleaned_bodies = [clean_text(text) for text in email_bodies]
+        
+        # Vectorize all at once
+        features = self.feature_transformer.transform(cleaned_bodies)
+        
+        # Predict all at once
+        predictions = self.model.predict(features)
+        
+        results = []
+        
+        # Get probabilities if available
+        probas = None
+        if hasattr(self.model, "predict_proba"):
+            probas = self.model.predict_proba(features)
+
+        for i, pred in enumerate(predictions):
+            pred_val = str(pred)
+            label = "Spam" if pred_val in ["0", "spam"] else "Ham"
+            
+            conf = 0.0
+            if probas is not None:
+                conf = float(np.max(probas[i])) * 100
+                
+            results.append({
+                'text': email_bodies[i],
+                'prediction': label,
+                'confidence': conf
+            })
+            
+        return results

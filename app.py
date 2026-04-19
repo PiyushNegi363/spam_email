@@ -112,7 +112,7 @@ with st.sidebar:
     }
     
     for name, text in examples.items():
-        if st.button(name, key=f"ex_{name}", use_container_width=True):
+        if st.button(name, key=f"ex_{name}", width="stretch"):
             st.session_state.email_input = text
 
     st.divider()
@@ -131,30 +131,32 @@ def main():
     tab1, tab2, tab3 = st.tabs(["🔍 Classifier", "📊 Model Insights", "📖 How it Works"])
 
     with tab1:
+        st.subheader("Check a Single Email")
         email_text = st.text_area(
             "Email Content:",
             value=st.session_state.email_input,
             height=250,
             placeholder="Paste the email content here or choose an example from the sidebar...",
             help="Maximum 5000 characters for optimal analysis.",
-            key="main_text_area" # Added key to avoid duplicate widget error
+            key="main_text_area"
         )
         
         col1, col2, col3 = st.columns([1.5, 1, 3])
         with col1:
-            classify_btn = st.button("🚀 Analyze Email", type="primary", use_container_width=True)
+            classify_btn = st.button("🚀 Analyze Email", type="primary", width="stretch")
         with col2:
-            if st.button("🗑️ Clear", use_container_width=True):
+            if st.button("🗑️ Clear", width="stretch"):
                 st.session_state.email_input = ""
                 st.rerun()
 
         if classify_btn:
+            # ... (single prediction logic remains same)
             if not email_text.strip():
                 st.warning("⚠️ Please provide some content to analyze.")
             elif len(email_text) > 5000:
                 st.error("❌ Input exceeds the 5000 character limit.")
             else:
-                with st.spinner("Decoding language patterns and evaluating risk factors..."):
+                with st.spinner("Decoding language patterns..."):
                     pipeline = get_pipeline()
                     if pipeline:
                         try:
@@ -163,9 +165,7 @@ def main():
                             confidence = result.get("confidence", 0)
 
                             st.markdown('<div class="result-container">', unsafe_allow_html=True)
-                            
                             res_col1, res_col2 = st.columns([2, 1])
-                            
                             with res_col1:
                                 if prediction == "Spam":
                                     st.subheader("🚨 Risk Assessment: **HIGH (Spam Detected)**")
@@ -173,44 +173,82 @@ def main():
                                 else:
                                     st.subheader("✅ Risk Assessment: **LOW (Safe / Ham)**")
                                     st.markdown("This message appears to be a legitimate communication.")
-                            
                             with res_col2:
                                 if confidence > 0:
                                     st.metric("Confidence Score", f"{confidence:.1f}%")
                                     st.progress(confidence / 100)
                                 else:
                                     st.metric("Classification", prediction)
-                                    st.caption("Linear SVM Confidence: Fixed")
-                            
                             st.markdown('</div>', unsafe_allow_html=True)
-                            
-                            if prediction == "Spam":
-                                st.toast("High Risk Detected!", icon="🚨")
-                            else:
-                                st.toast("Email appears safe.", icon="✅")
-                                
                         except Exception as e:
-                            st.error("An error occurred during classification. Please check the logs.")
-                            logger.error(f"Prediction error: {str(e)}")
-                    else:
-                        st.error("System Error: Could not load the classification engine.")
+                            st.error(f"Prediction error: {str(e)}")
+
+        st.divider()
+        st.subheader("Batch Classification")
+        uploaded_file = st.file_uploader("Upload a CSV file containing emails (must have a 'Message' column)", type=["csv"])
+        
+        if uploaded_file is not None:
+            try:
+                batch_df = pd.read_csv(uploaded_file)
+                if 'Message' not in batch_df.columns:
+                    st.error("CSV must contain a 'Message' column.")
+                else:
+                    if st.button("🔍 Process Batch", width="stretch"):
+                        with st.spinner("Processing batch..."):
+                            pipeline = get_pipeline()
+                            results = pipeline.predict_batch(batch_df['Message'].tolist())
+                            
+                            res_df = pd.DataFrame(results)
+                            st.success(f"Successfully processed {len(res_df)} emails.")
+                            
+                            # Summary metrics
+                            s_col1, s_col2 = st.columns(2)
+                            spam_count = len(res_df[res_df['prediction'] == 'Spam'])
+                            s_col1.metric("Spam Found", spam_count)
+                            s_col2.metric("Clean Emails", len(res_df) - spam_count)
+                            
+                            st.dataframe(res_df[['prediction', 'confidence', 'text']], width="stretch")
+                            
+                            # Download option
+                            csv = res_df.to_csv(index=False).encode('utf-8')
+                            st.download_button(
+                                "📥 Download Results CSV",
+                                csv,
+                                "classification_results.csv",
+                                "text/csv",
+                                key='download-csv'
+                            )
+            except Exception as e:
+                st.error(f"Error processing file: {str(e)}")
 
     with tab2:
         st.header("Model Performance Dashboard")
-        st.markdown("Evaluation metrics for the currently deployed **Support Vector Machine** model.")
         
+        col_t1, col_t2 = st.columns([3, 1])
+        with col_t1:
+            st.markdown("Evaluation metrics for the currently deployed **Support Vector Machine** model.")
+        with col_t2:
+            if st.button("🔄 Retrain Model", type="secondary", width="stretch"):
+                with st.spinner("Running full training pipeline... this may take a minute."):
+                    try:
+                        from src.pipeline.training_pipeline import TrainingPipeline
+                        train_pipe = TrainingPipeline()
+                        train_pipe.run_pipeline(cv_folds=3) # Faster CV for demo
+                        st.success("Model retrained successfully! Refreshing metrics...")
+                        st.cache_resource.clear()
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Training failed: {str(e)}")
+
         metrics_df = load_metrics()
         if metrics_df is not None:
-            # Transpose or pivot for better display
+            # ... (metrics display remains same)
             m_col1, m_col2, m_col3, m_col4 = st.columns(4)
-            
-            # Find values by attribute name
             def get_val(attr):
                 try:
                     val = metrics_df[metrics_df['Attribute'] == attr]['Value'].values[0]
                     return f"{float(val)*100:.1f}%"
                 except:
-                    # Return raw value if not a float
                     return metrics_df[metrics_df['Attribute'] == attr]['Value'].values[0]
 
             m_col1.metric("Accuracy", get_val("Accuracy"))
@@ -220,7 +258,7 @@ def main():
             
             st.divider()
             st.subheader("Training Observations")
-            st.dataframe(metrics_df, hide_index=True, use_container_width=True)
+            st.dataframe(metrics_df, hide_index=True, width="stretch")
         else:
             st.warning("Model metrics data not found. Please run the training pipeline.")
 

@@ -1,117 +1,61 @@
-# Spam Email Classification System
+# 📧 Spam Email Classifier Pro
 
-A production-ready spam/ham classifier built with Python, scikit-learn, and Streamlit. The app focuses on single-email classification, while the training pipeline supports model comparison and versioned outputs.
+A production-grade Machine Learning application to classify emails as **Spam** or **Ham** (Legitimate) with high precision. Built with a robust modular pipeline, premium Streamlit UI, and advanced error handling.
 
-## What This Project Does
+## 🌟 Key Features
 
-- Classifies email text as Spam or Ham with confidence scores.
-- Trains multiple ML models and selects the best model based on cross-validation.
-- Stores model artifacts and evaluation reports for each training run.
+- **🔍 Smart Classifier**: Analyze single emails using a high-precision Linear SVM model.
+- **🚀 Batch Processing**: Upload CSV files for rapid, high-performance classification of thousands of emails.
+- **📊 Model Insights**: Interactive dashboard displaying Accuracy, F1-Score, and Precision metrics.
+- **🔄 Live Re-training**: Trigger the full ML pipeline (Ingestion -> Grid Search -> Serialization) directly from the UI.
+- **🛡️ Reliability Audit Completed**: Hardened against crashes, file leaks, and malformed data.
+- **🎨 Premium UI/UX**: Modern interface with custom typography, sidebar examples, and real-time feedback.
 
-## How It Works
+## 🛠️ Technology Stack
 
-1. **Preprocessing**: Clean text (HTML removal, normalization, control-char stripping).
-2. **Vectorization**: TF-IDF feature extraction.
-3. **Modeling**: Train and compare models (e.g., SVM, Logistic Regression, Random Forest).
-4. **Selection**: Choose the best model based on F1-score.
-5. **Inference**: Load the best model and classify new emails in the Streamlit app.
+- **Frontend**: Streamlit
+- **Machine Learning**: Scikit-Learn (SVM, Logistic Regression, Random Forest)
+- **Data Processing**: Pandas, Numpy, TF-IDF Vectorization
+- **State Management**: Python Dataclasses
 
-## Key Features
+## 📂 Project Structure
 
-- Streamlit UI for instant single-email classification.
-- Modular pipeline for ingestion, transformation, training, and prediction.
-- Detailed metrics and comparison reports saved per training run.
-- Config-driven paths for datasets and model artifacts.
-
-## Project Layout (Short)
-
-```
-app.py
-src/
-  components/         # ingestion, transformation, training
-  pipeline/           # training & prediction pipelines
-  utils/              # logging, text utilities
-  config/             # project configuration
-data/                 # datasets
-outputs/              # model artifacts + reports per run
-logs/                 # training/prediction logs
+```text
+├── app.py                # Main Streamlit Application
+├── src/
+│   ├── components/       # ML Components (Ingestion, Transformation, Training)
+│   ├── pipeline/         # Execution Pipelines (Training, Prediction)
+│   ├── config/           # Configuration Management
+│   └── utils/            # Helper Utilities (Logger, Email Cleaning)
+├── data/
+│   └── dataset/          # Training Data
+├── outputs/              # Trained Models & Evaluation Reports (Ignored by Git)
+├── logs/                 # System Logs (Ignored by Git)
+└── requirements.txt      # Project Dependencies
 ```
 
-## Setup
+## 🚀 Quick Start
 
-```bash
-python -m venv .venv
-```
-
+### 1. Setup Environment
 ```powershell
-.venv\Scripts\Activate.ps1
-```
-
-```bash
+python -m venv .myenv
+.myenv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-## Run the App
-
-```bash
+### 2. Run the Application
+```powershell
 streamlit run app.py
 ```
 
-Paste an email and click **Classify Email** to see the prediction and confidence.
+### 3. Re-train the Model
+Navigate to the **Model Insights** tab in the UI and click **🔄 Retrain Model** to run the full training pipeline on the latest data.
 
-## Train a New Model
+## 📈 Performance
+The currently deployed **SVM** model achieves:
+- **Accuracy**: 97.9%
+- **F1-Score**: 97.8%
+- **Precision**: 97.9%
 
-1. Prepare a CSV dataset with columns:
-
-```csv
-text,label
-"your email text",spam
-"another email",ham
-```
-
-2. Replace the dataset at:
-
-```
-data/dataset/dataset.csv
-```
-
-3. Run training:
-
-```bash
-python -m src.pipeline.training_pipeline
-```
-
-4. Update model paths in:
-
-```
-src/config/config.py
-```
-
-## Outputs and Logs
-
-- Training artifacts and reports are stored in timestamped folders under:
-
-```
-outputs/
-```
-
-- Logs are written under:
-
-```
-logs/
-```
-
-## Configuration
-
-The key paths are in:
-
-```
-src/config/config.py
-```
-
-Update `model_path` and `feature_path` after training if you want the app to use the latest model.
-
-## Notes
-
-- The app loads a saved model and vectorizer from `outputs/` using the paths in config.
-- If scikit-learn versions differ between training and inference, re-train or install the matching version.
+## 📝 License
+MIT License. See `LICENSE` for details.
