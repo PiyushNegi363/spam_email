@@ -14,37 +14,51 @@ class TrainingPipeline:
         
     def run_pipeline(self, cv_folds: int = 5):
         try:
-            logger.info("Initiating training pipeline")
+            import os
+            from src.config.config import Config
+            config = Config()
+            
+            logger.info(f"{'='*70}")
+            logger.info("INITIATING TRAINING PIPELINE")
+            logger.info(f"{'='*70}")
+            
+            # Pre-check: Dataset existence
+            if not os.path.exists(config.training_data_path):
+                logger.error(f"Dataset not found at: {config.training_data_path}")
+                raise FileNotFoundError(f"Missing training data: {config.training_data_path}")
+
+            # 1. Ingestion
             ingestion = DataIngestion()
             self.state = ingestion.load_data(self.state)
-            logger.info(f"Data loaded successfully: {self.state.training_data.shape}")
-            logger.info(f"Columns: {self.state.training_data.columns.tolist()}")
-            logger.info(f"Sample size: {len(self.state.training_data)} emails")
-
+            
+            # 2. Transformation
             transformation = DataTransformation()
             self.state = transformation.transform_data(self.state)
-            logger.info(f"Data transformation completed")
-            logger.info(f"Training set: {len(self.state.X_train)} samples")
-            logger.info(f"Test set: {len(self.state.X_test)} samples")
-            logger.info(f"TF-IDF features: {self.state.X_train_tfidf.shape[1]}")
             
+            # 3. Model Training
             trainer = ModelTraining()
             self.state = trainer.train_models(
                 self.state, 
                 cv_folds=cv_folds
             )
             
-            logger.info("\n" + "="*70)
-            logger.info("Training pipeline completed successfully")
-            logger.info("="*70)
-            logger.info(f"All metrics saved to 'results/' directory")
-            logger.info(f"Best model: {self.state.best_model_name}")
-            logger.info(f"Best F1-Score: {self.state.model_metrics[self.state.best_model_name]['f1_score']:.4f}")
+            # 4. Final Summary
+            logger.info("\n" + "*"*70)
+            logger.info("TRAINING PIPELINE SUMMARY")
+            logger.info("*"*70)
+            logger.info(f"Status: SUCCESS")
+            logger.info(f"Best Model: {self.state.best_model_name}")
+            
+            metrics = self.state.model_metrics[self.state.best_model_name]
+            logger.info(f"Accuracy:  {metrics['accuracy']:.4f}")
+            logger.info(f"F1-Score:  {metrics['f1_score']:.4f}")
+            logger.info(f"CV Score:  {metrics.get('best_cv_score', 0.0):.4f}")
+            logger.info("*"*70)
             
             return self.state
             
         except Exception as e:
-            logger.error(f"Pipeline failed: {str(e)}")
+            logger.error(f"PIPELINE FAILED: {str(e)}", exc_info=True)
             raise e
 
 if __name__ == "__main__":

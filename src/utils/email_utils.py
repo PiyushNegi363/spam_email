@@ -45,10 +45,10 @@ def all_recipients(msg):
 # ----------------------------------------------------------------------------
 def clean_text(text):
     if not isinstance(text, str):
-        return text
+        return str(text) if text is not None else ""
     text = re.sub(r'[\x00-\x08\x0B-\x0C\x0E-\x1F\u200B\u200C\u200D\u200E\u200F\uFEFF]', '', text)
     text = text.encode("utf-16", "surrogatepass").decode("utf-16", "ignore")
-    text = text[:32767]
+    text = text[:10000]
     if text.startswith(("=", "+", "-", "@")):
         text = "'" + text
     return text

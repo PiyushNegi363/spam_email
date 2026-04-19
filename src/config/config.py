@@ -1,12 +1,15 @@
+import os
 from dataclasses import dataclass
 
 @dataclass
 class Config:
-    training_data_path: str = "data/dataset/dataset.csv"
-    validation_data_path: str = "data/dataset/All_mail_Including_Spam_and_Trash.mbox"
-    OUTPUT_BASE_DIR: str = "outputs"
-    model_path: str = "outputs/2025-12-25_14-02-05/models/SVM_model.pkl"
-    feature_path: str = "outputs/2025-12-25_14-02-05/models/vectorizer.pkl"
+    training_data_path: str = os.getenv("TRAINING_DATA_PATH", "data/dataset/dataset.csv")
+    validation_data_path: str = os.getenv("VALIDATION_DATA_PATH", "data/dataset/All_mail_Including_Spam_and_Trash.mbox")
+    OUTPUT_BASE_DIR: str = os.getenv("OUTPUT_BASE_DIR", "outputs")
+    
+    # Default model paths - should be updated after training
+    model_path: str = os.getenv("MODEL_PATH", "outputs/2025-12-25_14-02-05/models/SVM_model.pkl")
+    feature_path: str = os.getenv("FEATURE_PATH", "outputs/2025-12-25_14-02-05/models/vectorizer.pkl")
 
 class ModelConfig:
     models = {

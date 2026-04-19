@@ -23,12 +23,15 @@ def get_logger(name: str):
         _LOG_FILE = log_dir / f"{timestamp}.log"
 
     handler = logging.FileHandler(_LOG_FILE, encoding="utf-8")
+    console_handler = logging.StreamHandler()
     formatter = logging.Formatter(
         "[%(asctime)s]: %(filename)s - Line %(lineno)d: %(levelname)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
     )
     handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
 
     logger.addHandler(handler)
+    logger.addHandler(console_handler)
     logger.propagate = False
     return logger

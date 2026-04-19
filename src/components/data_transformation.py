@@ -15,24 +15,43 @@ class DataTransformation:
         try:
             data = state.training_data.copy()
             
-            # Encode labels: spam -> 0, ham -> 1
-            data.loc[data['Category'] == 'spam', 'Category'] = 0
-            data.loc[data['Category'] == 'ham', 'Category'] = 1
+            # 1. Handle Missing Values
+            # ------------------------------------------------------------------
+            initial_rows = len(data)
+            data.dropna(subset=['Category', 'Message'], inplace=True)
+            if len(data) < initial_rows:
+                logger.warning(f"Dropped {initial_rows - len(data)} rows with missing values")
             
-            # Ensure Category column is integer type
-            data['Category'] = data['Category'].astype(int)
+            # 2. Robust Label Encoding
+            # ------------------------------------------------------------------
+            # Convert to string and strip/lowercase for matching
+            data['Category'] = data['Category'].astype(str).str.strip().str.lower()
+            
+            # Mapping: spam -> 0, ham -> 1. 
+            # We use a explicit map to handle unexpected values
+            label_map = {'spam': 0, 'ham': 1}
+            
+            # Filter to only rows we can handle, or map everything else to ham? 
+            # Better to drop unknown categories to ensure training quality.
+            valid_mask = data['Category'].isin(label_map.keys())
+            if not valid_mask.all():
+                logger.warning(f"Dropping {len(data) - valid_mask.sum()} rows with unknown categories: {data.loc[~valid_mask, 'Category'].unique()}")
+                data = data[valid_mask]
+            
+            data['Category'] = data['Category'].map(label_map).astype(int)
             
             logger.info(f"Label encoding completed. Data shape: {data.shape}")
             logger.info(f"Unique labels: {data['Category'].unique()}")
-            logger.info(f"Label dtype: {data['Category'].dtype}")
             
-            # Split features and target
+            # 3. Text Preprocessing
+            # ------------------------------------------------------------------
+            # Ensure Message is string
+            data['Message'] = data['Message'].astype(str)
+            
+            # 4. Split and Vectorize
+            # ------------------------------------------------------------------
             X = data['Message']
-            y = data['Category']
-            
-            # Convert y to numpy array of integers to ensure proper type
-            import numpy as np
-            y = np.array(y, dtype=int)
+            y = data['Category'].values
             
             # Split into train and test sets (70:30 ratio)
             X_train, X_test, y_train, y_test = train_test_split(
@@ -42,7 +61,7 @@ class DataTransformation:
             logger.info(f"Train/test split completed. Train size: {len(X_train)}, Test size: {len(X_test)}")
             
             # Apply TF-IDF vectorization
-            tfidf_vectorizer = TfidfVectorizer(lowercase=True, stop_words='english')
+            tfidf_vectorizer = TfidfVectorizer(lowercase=True, stop_words='english', min_df=2)
             X_train_tfidf = tfidf_vectorizer.fit_transform(X_train)
             X_test_tfidf = tfidf_vectorizer.transform(X_test)
             
@@ -58,8 +77,8 @@ class DataTransformation:
             state.X_test_tfidf = X_test_tfidf
             state.tfidf_vectorizer = tfidf_vectorizer
             
-            logger.info("Data transformation completed")
+            logger.info("Data transformation completed successfully")
             return state
         except Exception as e:
             logger.error(f"Failed to transform data: {str(e)}")
-            raise e
+            raise e

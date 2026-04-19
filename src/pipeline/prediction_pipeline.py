@@ -1,4 +1,6 @@
+import os
 import pickle
+import numpy as np
 from typing import Dict
 
 from src.utils.logger import get_logger
@@ -17,26 +19,56 @@ class PredictionPipeline:
             self._load_models()
     
     def _load_models(self) -> None:
-
-        logger.info("Loading models...")
-        self.feature_transformer = pickle.load(open(self.config.feature_path, "rb"))
-        self.model = pickle.load(open(self.config.model_path, "rb"))
-        logger.info("Models loaded successfully")
+        try:
+            logger.info(f"Loading feature transformer from: {self.config.feature_path}")
+            if not os.path.exists(self.config.feature_path):
+                raise FileNotFoundError(f"Feature transformer not found at {self.config.feature_path}")
+            
+            with open(self.config.feature_path, "rb") as f:
+                self.feature_transformer = pickle.load(f)
+            
+            logger.info(f"Loading model from: {self.config.model_path}")
+            if not os.path.exists(self.config.model_path):
+                raise FileNotFoundError(f"Model not found at {self.config.model_path}")
+                
+            with open(self.config.model_path, "rb") as f:
+                self.model = pickle.load(f)
+                
+            logger.info("Models loaded successfully")
+        except Exception as e:
+            logger.error(f"Failed to load models: {str(e)}")
+            raise e
     
     def predict_single_email(self, email_body: str) -> Dict:
         if self.model is None or self.feature_transformer is None:
             self._load_models()
 
+        if not email_body.strip():
+            return {
+                'prediction': 'Unknown',
+                'confidence': 0.0,
+                'raw_prediction': -1,
+                'error': 'Empty email body'
+            }
+
         cleaned_body = clean_text(email_body)
         features = self.feature_transformer.transform([cleaned_body])
         prediction = self.model.predict(features)
-        prediction_label = "Spam" if str(prediction[0]) == "0" else "Ham"
         
+        # Robust label mapping
+        pred_val = str(prediction[0])
+        prediction_label = "Spam" if pred_val in ["0", "spam"] else "Ham"
+        
+        confidence = 0.0
         try:
-            prediction_proba = self.model.predict_proba(features)
-            confidence = float(max(prediction_proba[0])) * 100
-        except:
-            confidence = None
+            if hasattr(self.model, "predict_proba"):
+                prediction_proba = self.model.predict_proba(features)
+                confidence = float(np.max(prediction_proba[0])) * 100
+            elif hasattr(self.model, "decision_function"):
+                confidence = 0.0 
+        except Exception as e:
+            logger.warning(f"Could not calculate confidence: {str(e)}")
+            confidence = 0.0
         
         return {
             'prediction': prediction_label,
