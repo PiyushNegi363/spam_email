@@ -113,7 +113,8 @@ with st.sidebar:
     
     for name, text in examples.items():
         if st.button(name, key=f"ex_{name}", width="stretch"):
-            st.session_state.email_input = text
+            st.session_state.main_text_area = text
+            st.rerun()
 
     st.divider()
     st.markdown("**About this Project**")
@@ -122,8 +123,8 @@ with st.sidebar:
 
 # --- MAIN APP ---
 def main():
-    if 'email_input' not in st.session_state:
-        st.session_state.email_input = ""
+    if 'main_text_area' not in st.session_state:
+        st.session_state.main_text_area = ""
 
     st.title("📧 Spam Email Classifier Pro")
     st.markdown("Enter an email body below to evaluate its safety profile using our advanced machine learning engine.")
@@ -134,7 +135,6 @@ def main():
         st.subheader("Check a Single Email")
         email_text = st.text_area(
             "Email Content:",
-            value=st.session_state.email_input,
             height=250,
             placeholder="Paste the email content here or choose an example from the sidebar...",
             help="Maximum 5000 characters for optimal analysis.",
@@ -146,7 +146,7 @@ def main():
             classify_btn = st.button("🚀 Analyze Email", type="primary", width="stretch")
         with col2:
             if st.button("🗑️ Clear", width="stretch"):
-                st.session_state.email_input = ""
+                st.session_state.main_text_area = ""
                 st.rerun()
 
         if classify_btn:
@@ -182,44 +182,6 @@ def main():
                             st.markdown('</div>', unsafe_allow_html=True)
                         except Exception as e:
                             st.error(f"Prediction error: {str(e)}")
-
-        st.divider()
-        st.subheader("Batch Classification")
-        uploaded_file = st.file_uploader("Upload a CSV file containing emails (must have a 'Message' column)", type=["csv"])
-        
-        if uploaded_file is not None:
-            try:
-                batch_df = pd.read_csv(uploaded_file)
-                if 'Message' not in batch_df.columns:
-                    st.error("CSV must contain a 'Message' column.")
-                else:
-                    if st.button("🔍 Process Batch", width="stretch"):
-                        with st.spinner("Processing batch..."):
-                            pipeline = get_pipeline()
-                            results = pipeline.predict_batch(batch_df['Message'].tolist())
-                            
-                            res_df = pd.DataFrame(results)
-                            st.success(f"Successfully processed {len(res_df)} emails.")
-                            
-                            # Summary metrics
-                            s_col1, s_col2 = st.columns(2)
-                            spam_count = len(res_df[res_df['prediction'] == 'Spam'])
-                            s_col1.metric("Spam Found", spam_count)
-                            s_col2.metric("Clean Emails", len(res_df) - spam_count)
-                            
-                            st.dataframe(res_df[['prediction', 'confidence', 'text']], width="stretch")
-                            
-                            # Download option
-                            csv = res_df.to_csv(index=False).encode('utf-8')
-                            st.download_button(
-                                "📥 Download Results CSV",
-                                csv,
-                                "classification_results.csv",
-                                "text/csv",
-                                key='download-csv'
-                            )
-            except Exception as e:
-                st.error(f"Error processing file: {str(e)}")
 
     with tab2:
         st.header("Model Performance Dashboard")
